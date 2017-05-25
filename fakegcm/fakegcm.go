@@ -34,7 +34,7 @@ func readRequest(r io.Reader) (*Request, error) {
 	req := new(Request)
 	dec := json.NewDecoder(r)
 	err := dec.Decode(&req)
-	if err != nil {
+	if err != nil && err != io.EOF {
 		return nil, err
 	}
 	return req, nil
@@ -55,7 +55,7 @@ type Result struct {
 
 func handler(w http.ResponseWriter, r *http.Request) {
 	buf := new(bytes.Buffer)
-	fmt.Fprintf(buf, "fakegcm: %s\n", time.Now().UTC().Format(time.StampMilli))
+	fmt.Fprintf(buf, "\nfakegcm: %s\n", time.Now().UTC().Format(time.StampMilli))
 	r.Write(buf)
 
 	sp := bytes.SplitN(buf.Bytes(), []byte("\r\n\r\n"), 2)
