@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"flag"
 	"fmt"
 	"io"
 	"log"
@@ -10,7 +11,20 @@ import (
 	"time"
 )
 
+var addr = flag.String("addr", ":8080", "")
+
 var ch = make(chan *bytes.Buffer, 1000)
+
+func main() {
+	flag.Parse()
+	http.HandleFunc("/", handler)
+	go func() {
+		for b := range ch {
+			fmt.Println(b)
+		}
+	}()
+	log.Fatal(http.ListenAndServe(*addr, nil))
+}
 
 type Request struct {
 	RegistrationIds []string `json:"registration_ids"`
@@ -68,14 +82,4 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	}
 	enc := json.NewEncoder(w)
 	enc.Encode(res)
-}
-
-func main() {
-	http.HandleFunc("/", handler)
-	go func() {
-		for b := range ch {
-			fmt.Println(b)
-		}
-	}()
-	log.Fatal(http.ListenAndServe(":8085", nil))
 }
