@@ -6,24 +6,26 @@ import (
 	"flag"
 	"fmt"
 	"io"
-	"log"
 	"net/http"
+	"os"
 	"time"
 )
 
-var addr = flag.String("addr", ":8080", "")
-
-var ch = make(chan *bytes.Buffer, 1000)
+var (
+	addr = flag.String("addr", ":8080", "")
+	cert = flag.String("cert", "cert.pem", "")
+	key  = flag.String("key", "key.pem", "")
+)
 
 func main() {
 	flag.Parse()
 	http.HandleFunc("/", handler)
-	go func() {
-		for b := range ch {
-			fmt.Println(b)
-		}
-	}()
-	log.Fatal(http.ListenAndServe(*addr, nil))
+	go writeLog(os.Stdout)
+	err := http.ListenAndServeTLS(*addr, *cert, *key, nil)
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "fakegcm: %v\n", err)
+		os.Exit(1)
+	}
 }
 
 type Request struct {
@@ -52,6 +54,8 @@ type Result struct {
 	MessageId string `json:"message_id"`
 	Error     string `json:"error"`
 }
+
+var ch = make(chan *bytes.Buffer, 1000)
 
 func handler(w http.ResponseWriter, r *http.Request) {
 	buf := new(bytes.Buffer)
@@ -82,4 +86,10 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	}
 	enc := json.NewEncoder(w)
 	enc.Encode(res)
+}
+
+func writeLog(w io.Writer) {
+	for buf := range ch {
+		fmt.Fprintln(w, buf)
+	}
 }
