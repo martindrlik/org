@@ -4,31 +4,41 @@ import (
 	"bytes"
 	"encoding/json"
 	"flag"
-	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"os"
-	"time"
 )
 
 var (
-	addr = flag.String("addr", ":8080", "")
-	cert = flag.String("cert", "cert.pem", "")
-	key  = flag.String("key", "key.pem", "")
+	logger = log.New(os.Stdout, "fakegcm: ", log.LstdFlags)
+	addr   = flag.String("addr", ":8080", "")
+	cert   = flag.String("cert", "cert.pem", "")
+	key    = flag.String("key", "key.pem", "")
+	monly  = flag.Bool("message-only", false, "print message property only")
 )
 
 func main() {
 	flag.Parse()
 	http.HandleFunc("/", handler)
-	go writeLog(os.Stdout)
+	go func() {
+		for buf := range ch {
+			logger.Println(buf)
+		}
+	}()
 	err := http.ListenAndServeTLS(*addr, *cert, *key, nil)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "fakegcm: %v\n", err)
+		logger.Fatalln(err)
 		os.Exit(1)
 	}
 }
 
+type RequestData struct {
+	Message string
+}
+
 type Request struct {
+	Data            RequestData
 	RegistrationIds []string `json:"registration_ids"`
 }
 
@@ -59,18 +69,21 @@ var ch = make(chan *bytes.Buffer, 1000)
 
 func handler(w http.ResponseWriter, r *http.Request) {
 	buf := new(bytes.Buffer)
-	fmt.Fprintf(buf, "\nfakegcm: %s\n", time.Now().UTC().Format(time.StampMilli))
 	r.Write(buf)
 
 	sp := bytes.SplitN(buf.Bytes(), []byte("\r\n\r\n"), 2)
 	body := bytes.NewBuffer(sp[1])
 	req, err := readRequest(body)
 	if err != nil {
-		fmt.Fprintf(buf, "fakegcm: %v\n", err)
+		logger.Println(err)
 		ch <- buf
 		return
 	}
-	ch <- buf
+	if *monly {
+		ch <- bytes.NewBufferString(req.Data.Message)
+	} else {
+		ch <- buf
+	}
 	n := len(req.RegistrationIds)
 	res := Response{
 		MulticastId: 2371663165171299815,
@@ -86,10 +99,4 @@ func handler(w http.ResponseWriter, r *http.Request) {
 	}
 	enc := json.NewEncoder(w)
 	enc.Encode(res)
-}
-
-func writeLog(w io.Writer) {
-	for buf := range ch {
-		fmt.Fprintln(w, buf)
-	}
 }
