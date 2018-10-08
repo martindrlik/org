@@ -24,6 +24,9 @@ func main() {
 		if info.IsDir() {
 			return nil
 		}
+		if !strings.HasSuffix(path, ".cs") {
+			return nil
+		}
 		f, err := os.Open(path)
 		if err != nil {
 			return err
