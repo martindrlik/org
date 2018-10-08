@@ -10,10 +10,11 @@ import (
 )
 
 func isSuspicious(s string) bool {
-	if strings.Contains(s, " = _") && !strings.Contains(s, "Relation") {
-		return true
+	if !strings.Contains(s, " = ") {
+		return false
 	}
-	return strings.Contains(s, " = ") && strings.Contains(s, "(")
+	return strings.Contains(s, "UtcNow") ||
+		strings.Contains(s, "Generate")
 }
 
 func main() {
