@@ -16,11 +16,11 @@ var (
 )
 
 func main() {
-	checkIsAlive(5) // warmup
+	do(5) // warmup
 	ch := make(chan int)
 	for i := 0; i < *concurrent; i++ {
 		go func() {
-			ch <- checkIsAlive(*requests)
+			ch <- do(*requests)
 		}()
 	}
 	numOK := 0
@@ -34,7 +34,7 @@ func main() {
 		total, numOK, *concurrent, d, float64(total)/d.Seconds())
 }
 
-func checkIsAlive(times int) int {
+func do(times int) int {
 	numOK := 0
 	for i := 0; i < times; i++ {
 		res, err := http.Get(*url)
