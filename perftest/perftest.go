@@ -16,6 +16,7 @@ var (
 )
 
 func main() {
+	flag.Parse()
 	do(5) // warmup
 	ch := make(chan int)
 	for i := 0; i < *concurrent; i++ {
