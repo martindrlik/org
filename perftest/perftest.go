@@ -30,7 +30,7 @@ func main() {
 	}
 	d := time.Now().Sub(start)
 	total := (*concurrent) * (*requests)
-	fmt.Printf("%d times IsAlive, %d OK, concurrent %d, %v => %v\n",
+	fmt.Printf("%d requests, %d OK, concurrent %d, %v => %v\n",
 		total, numOK, *concurrent, d, float64(total)/d.Seconds())
 }
 
