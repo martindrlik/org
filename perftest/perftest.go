@@ -6,6 +6,8 @@ import (
 	"io/ioutil"
 	"log"
 	"net/http"
+	"os"
+	"runtime/trace"
 	"time"
 )
 
@@ -16,6 +18,19 @@ var (
 )
 
 func main() {
+	f, err := os.Create("trace.out")
+	if err != nil {
+		log.Fatal(err)
+	}
+	defer func() {
+		if err := f.Close(); err != nil {
+			log.Fatal(err)
+		}
+	}()
+	if err := trace.Start(f); err != nil {
+		log.Fatal(err)
+	}
+	defer trace.Stop()
 	flag.Parse()
 	do(5) // warmup
 	ch := make(chan int)
@@ -40,7 +55,7 @@ func do(times int) int {
 	for i := 0; i < times; i++ {
 		res, err := http.Get(*url)
 		if err != nil {
-			log.Fatal()
+			log.Fatal(err)
 		}
 		defer res.Body.Close()
 		if _, err := ioutil.ReadAll(res.Body); err != nil {
