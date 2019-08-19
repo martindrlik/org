@@ -61,11 +61,11 @@ func writeError(w http.ResponseWriter, err error) error {
 }
 
 func writeReply(w http.ResponseWriter, r Reply) error {
-	if r.Status != 0 {
-		w.WriteHeader(r.Status)
-	}
 	if r.RetryAfter != "" {
 		w.Header().Add("Retry-After", r.RetryAfter)
+	}
+	if r.Status != 0 {
+		w.WriteHeader(r.Status)
 	}
 	enc := json.NewEncoder(w)
 	return enc.Encode(struct {
