@@ -1,32 +1,37 @@
-package main
+package fakegcm
 
 import (
 	"bytes"
-	"flag"
 	"log"
 	"net/http"
 
 	"github.com/martindrlik/org/confirm"
 )
 
-var (
-	addr = flag.String("addr", ":8080", "")
-	cert = flag.String("cert", "cert.pem", "")
-	key  = flag.String("key", "key.pem", "")
+type Configuration struct {
+	Addr     string
+	CertFile string
+	KeyFile  string
 
-	monly = flag.Bool("message-only", false, "log notification message only")
-	confr = flag.Bool("confirm-delivery", false, "confirm notification delivery")
+	ConfirmDelivery bool
+	MessageOnly     bool
+}
+
+var (
+	confirmDelivery bool
+	messageOnly     bool
 )
 
-func main() {
+func ListenAndServeTLS(configuration Configuration) error {
 	confirm.LogError = log.Println
-	flag.Parse()
+	confirmDelivery = configuration.ConfirmDelivery
+	messageOnly = configuration.MessageOnly
 	http.HandleFunc("/", handle)
-	log.Fatal(http.ListenAndServeTLS(
-		*addr,
-		*cert,
-		*key,
-		nil))
+	return http.ListenAndServeTLS(
+		configuration.Addr,
+		configuration.CertFile,
+		configuration.KeyFile,
+		nil)
 }
 
 func handle(w http.ResponseWriter, r *http.Request) {
@@ -40,12 +45,12 @@ func handle(w http.ResponseWriter, r *http.Request) {
 		log.Println(err)
 		return
 	}
-	if *monly {
+	if messageOnly {
 		log.Println(notification.Data.Message)
 	} else {
 		log.Println(buf)
 	}
-	if *confr {
+	if confirmDelivery {
 		confirm.Channel <- confirm.Payload{
 			ApplicationId: notification.Data.Content.ApplicationId,
 			BaseURL:       notification.Data.Content.BaseURL,

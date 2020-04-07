@@ -1,4 +1,4 @@
-package main
+package fakegcm
 
 import (
 	"encoding/json"
