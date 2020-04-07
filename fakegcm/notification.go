@@ -11,7 +11,7 @@ type Notification struct {
 }
 
 type Payload struct {
-	Content Content
+	Content
 	Message string
 
 	NotificationToken string
