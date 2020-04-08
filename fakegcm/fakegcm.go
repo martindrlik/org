@@ -23,7 +23,6 @@ var (
 )
 
 func ListenAndServeTLS(configuration Configuration) error {
-	confirm.LogError = log.Println
 	confirmDelivery = configuration.ConfirmDelivery
 	messageOnly = configuration.MessageOnly
 	http.HandleFunc("/", handle)
