@@ -18,18 +18,22 @@ type Result struct {
 	Error     string `json:"error"`
 }
 
-func respond(w io.Writer, n int) error {
+func respond(w io.Writer, notification *Notification) error {
+	n := len(notification.Regs)
 	res := Response{
 		MulticastId: 2371663165171299815,
 		Results:     make([]Result, n),
 	}
 	for i := 0; i < n; i++ {
-		res.Results[i] = Result{MessageId: "0:5219441976194715812%8eda0b1da6bda"}
+		res.Results[i] = Result{
+			MessageId: "0:5219441976194715812%8eda0b1da6bda",
+			Error:     notification.Data.ResponseError,
+		}
 	}
-	if n > 1 {
-		res.Success = n - 1
-		res.Failure = 1
-		res.Results[n-1].Error = "InvalidRegistration"
+	if notification.Data.ResponseError == "" {
+		res.Success = n
+	} else {
+		res.Failure = n
 	}
 	enc := json.NewEncoder(w)
 	return enc.Encode(res)

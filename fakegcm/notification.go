@@ -20,6 +20,8 @@ type Payload struct {
 type Content struct {
 	ApplicationId uint64
 	BaseURL       string
+	ResponseCode  int
+	ResponseError string
 }
 
 func requestNotification(r io.Reader) (*Notification, error) {

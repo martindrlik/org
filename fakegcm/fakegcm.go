@@ -49,7 +49,9 @@ func handle(w http.ResponseWriter, r *http.Request) {
 	} else {
 		log.Println(buf)
 	}
-	if confirmDelivery {
+	if confirmDelivery &&
+		isSuccessCode(notification.Data.ResponseCode) &&
+		notification.Data.ResponseError == "" {
 		confirm.Channel <- confirm.Payload{
 			ApplicationId: notification.Data.Content.ApplicationId,
 			BaseURL:       notification.Data.Content.BaseURL,
@@ -57,8 +59,15 @@ func handle(w http.ResponseWriter, r *http.Request) {
 			Token:         notification.Data.NotificationToken,
 		}
 	}
-	err = respond(w, len(notification.Regs))
+	if notification.Data.ResponseCode != 0 {
+		w.WriteHeader(notification.Data.ResponseCode)
+	}
+	err = respond(w, notification)
 	if err != nil {
 		log.Println(err)
 	}
+}
+
+func isSuccessCode(i int) bool {
+	return i >= 200 && i <= 300
 }
