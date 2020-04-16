@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/tomchl/logfilter"
 	"github.com/martindrlik/org/confirm"
 )
 
@@ -26,12 +27,11 @@ func ListenAndServeTLS(configuration Configuration) error {
 	confirmDelivery = configuration.ConfirmDelivery
 	messageOnly = configuration.MessageOnly
 	http.HandleFunc("/", handle)
-	return http.ListenAndServeTLS(
-		configuration.Addr,
-		configuration.CertFile,
-		configuration.KeyFile,
-		nil)
+	
+	server := &http.Server{Addr: configuration.Addr, ErrorLog: log.New(&logfilter.IgnoreHTTPWriter{}, "", 0)}
+	return server.ListenAndServeTLS(configuration.CertFile, configuration.KeyFile)
 }
+
 
 func handle(w http.ResponseWriter, r *http.Request) {
 	buf := new(bytes.Buffer)
