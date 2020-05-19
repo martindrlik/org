@@ -6,13 +6,14 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"net/url"
 	"path"
 )
 
 var Channel = make(chan Payload, 100)
-var LogError func(...interface{})
+var LogError = log.Print
 
 func init() {
 	go func() {
