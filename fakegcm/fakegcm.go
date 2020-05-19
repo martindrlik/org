@@ -5,8 +5,8 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/tomchl/logfilter"
 	"github.com/martindrlik/org/confirm"
+	"github.com/tomchl/logfilter"
 )
 
 type Configuration struct {
@@ -27,11 +27,10 @@ func ListenAndServeTLS(configuration Configuration) error {
 	confirmDelivery = configuration.ConfirmDelivery
 	messageOnly = configuration.MessageOnly
 	http.HandleFunc("/", handle)
-	
+
 	server := &http.Server{Addr: configuration.Addr, ErrorLog: log.New(&logfilter.IgnoreHTTPWriter{}, "", 0)}
 	return server.ListenAndServeTLS(configuration.CertFile, configuration.KeyFile)
 }
-
 
 func handle(w http.ResponseWriter, r *http.Request) {
 	buf := new(bytes.Buffer)
@@ -69,5 +68,5 @@ func handle(w http.ResponseWriter, r *http.Request) {
 }
 
 func isSuccessCode(i int) bool {
-	return i >= 200 && i <= 300
+	return i == 0 || i >= 200 && i <= 300
 }
