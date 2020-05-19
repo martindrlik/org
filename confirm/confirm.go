@@ -27,6 +27,9 @@ func confirmDelivery(payload *Payload) {
 		logError(err)
 		return
 	}
+	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{
+	    InsecureSkipVerify: true,
+	}
 	r, err := http.Post(u.String(), "application/json", payload.requestBody())
 	if err != nil {
 		logError(err)
