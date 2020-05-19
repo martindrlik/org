@@ -2,6 +2,7 @@ package confirm
 
 import (
 	"bytes"
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -28,7 +29,7 @@ func confirmDelivery(payload *Payload) {
 		return
 	}
 	http.DefaultTransport.(*http.Transport).TLSClientConfig = &tls.Config{
-	    InsecureSkipVerify: true,
+		InsecureSkipVerify: true,
 	}
 	r, err := http.Post(u.String(), "application/json", payload.requestBody())
 	if err != nil {
