@@ -58,11 +58,11 @@ func (payload *Payload) requestBody() io.Reader {
 	b := &bytes.Buffer{}
 	enc := json.NewEncoder(b)
 	err := enc.Encode(struct {
-		ApplicationId     uint64
+		ApplicationID     uint64
 		NotificationToken string
 		Platform          string
 	}{
-		ApplicationId:     payload.ApplicationId,
+		ApplicationID:     payload.ApplicationID,
 		Platform:          payload.Platform,
 		NotificationToken: payload.Token,
 	})
