@@ -4,8 +4,10 @@ import (
 	"bytes"
 	"log"
 	"net/http"
+	"strings"
 
 	"github.com/martindrlik/org/confirm"
+	"github.com/martindrlik/org/notquery"
 	"github.com/tomchl/logfilter"
 )
 
@@ -38,6 +40,7 @@ func handle(w http.ResponseWriter, r *http.Request) {
 
 	sp := bytes.SplitN(buf.Bytes(), []byte("\r\n\r\n"), 2)
 	notification, err := requestNotification(bytes.NewBuffer(sp[1]))
+	notquery.Add(strings.Join(notification.Regs, ","), sp[1])
 	if err != nil {
 		log.Println(buf)
 		log.Println(err)
@@ -52,7 +55,7 @@ func handle(w http.ResponseWriter, r *http.Request) {
 		isSuccessCode(notification.Data.ResponseCode) &&
 		notification.Data.ResponseError == "" {
 		confirm.Channel <- confirm.Payload{
-			ApplicationId: notification.Data.Content.ApplicationId,
+			ApplicationID: notification.Data.Content.ApplicationId,
 			BaseURL:       notification.Data.Content.BaseURL,
 			Platform:      "Android",
 			Token:         notification.Data.NotificationToken,
