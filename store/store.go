@@ -10,7 +10,7 @@ import (
 )
 
 type Value struct {
-	name string
+	Name string
 	Time time.Time
 	Data []byte
 }
@@ -44,7 +44,7 @@ func (s *Store) Add(name string, data []byte) {
 	if s.idx == len(s.val) {
 		s.idx = 0
 	}
-	if is, ok := s.byName[s.val[s.idx].name]; ok {
+	if is, ok := s.byName[s.val[s.idx].Name]; ok {
 		delete(is, s.idx)
 	}
 	s.val[s.idx] = v
