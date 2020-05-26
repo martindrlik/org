@@ -34,8 +34,10 @@ jobs:
       run: |
         go build -v ./confirm
         go build -v ./store
+        go build -v ./notquery
 
     - name: Test
       run: |
         go test -v ./confirm
         go test -v ./store
+        go test -v ./notquery
