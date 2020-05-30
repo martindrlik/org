@@ -18,55 +18,57 @@ type Configuration struct {
 
 	ConfirmDelivery bool
 	MessageOnly     bool
+
+	Println func(...interface{})
+
+	confirmAdd func(confirm.Payload)
+	queryAdd   func(string, []byte)
 }
 
-var (
-	confirmDelivery bool
-	messageOnly     bool
-)
-
-func ListenAndServeTLS(configuration Configuration) error {
-	confirmDelivery = configuration.ConfirmDelivery
-	messageOnly = configuration.MessageOnly
-	http.HandleFunc("/", handle)
-
-	server := &http.Server{Addr: configuration.Addr, ErrorLog: log.New(&logfilter.IgnoreHTTPWriter{}, "", 0)}
-	return server.ListenAndServeTLS(configuration.CertFile, configuration.KeyFile)
+func ListenAndServeTLS(config Configuration) error {
+	config.confirmAdd = func(p confirm.Payload) { confirm.Channel <- p }
+	config.queryAdd = notquery.Add
+	if config.Println == nil {
+		config.Println = log.Println
+	}
+	http.HandleFunc("/", config.handle)
+	srv := &http.Server{Addr: config.Addr, ErrorLog: log.New(&logfilter.IgnoreHTTPWriter{}, "", 0)}
+	return srv.ListenAndServeTLS(config.CertFile, config.KeyFile)
 }
 
-func handle(w http.ResponseWriter, r *http.Request) {
+func (config Configuration) handle(w http.ResponseWriter, r *http.Request) {
 	buf := new(bytes.Buffer)
 	r.Write(buf)
-
 	sp := bytes.SplitN(buf.Bytes(), []byte("\r\n\r\n"), 2)
-	notification, err := requestNotification(bytes.NewBuffer(sp[1]))
-	notquery.Add(strings.Join(notification.Regs, ","), sp[1])
+	sr, err := decodeSendRequest(bytes.NewBuffer(sp[1]))
 	if err != nil {
-		log.Println(buf)
-		log.Println(err)
+		config.queryAdd("", sp[1])
+		config.Println(buf)
+		config.Println(err)
 		return
 	}
-	if messageOnly {
-		log.Println(notification.Data.Message)
+	config.queryAdd(strings.Join(sr.RegistrationIds, ","), sp[1])
+	if config.MessageOnly {
+		config.Println(sr.Data.Message)
 	} else {
-		log.Println(buf)
+		config.Println(buf)
 	}
-	if confirmDelivery &&
-		isSuccessCode(notification.Data.ResponseCode) &&
-		notification.Data.ResponseError == "" {
-		confirm.Channel <- confirm.Payload{
-			ApplicationID: notification.Data.Content.ApplicationId,
-			BaseURL:       notification.Data.Content.BaseURL,
+	if config.ConfirmDelivery &&
+		isSuccessCode(sr.Data.ResponseCode) &&
+		sr.Data.ResponseError == "" {
+		config.confirmAdd(confirm.Payload{
+			ApplicationID: sr.Data.Content.ApplicationID,
+			BaseURL:       sr.Data.Content.BaseURL,
 			Platform:      "Android",
-			Token:         notification.Data.NotificationToken,
-		}
+			Token:         sr.Data.NotificationToken,
+		})
 	}
-	if notification.Data.ResponseCode != 0 {
-		w.WriteHeader(notification.Data.ResponseCode)
+	if sr.Data.ResponseCode != 0 {
+		w.WriteHeader(sr.Data.ResponseCode)
 	}
-	err = respond(w, notification)
+	err = respond(w, sr)
 	if err != nil {
-		log.Println(err)
+		config.Println(err)
 	}
 }
 

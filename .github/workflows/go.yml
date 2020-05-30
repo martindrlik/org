@@ -40,5 +40,6 @@ jobs:
     - name: Test
       run: |
         go test -v ./confirm
+        go test -v ./fakegcm
         go test -v ./notquery
         go test -v ./store
