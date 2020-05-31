@@ -31,7 +31,8 @@ func all(w http.ResponseWriter, r *http.Request) {
 }
 
 func q(w http.ResponseWriter, r *http.Request) {
-	vals, ok := s.ByName(r.URL.Query().Get("device"))
+	device := r.URL.Query().Get("device")
+	vals, ok := s.ByName(device)
 	if !ok {
 		return
 	}
