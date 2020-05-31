@@ -35,7 +35,10 @@ func (s *Store) Add(name string, data []byte) {
 	s.mux.Lock()
 	defer s.mux.Unlock()
 	if cap(s.val) > len(s.val) {
-		m := make(map[int]struct{})
+		m, ok := s.byName[name]
+		if !ok {
+			m = make(map[int]struct{})
+		}
 		m[len(s.val)] = struct{}{}
 		s.byName[name] = m
 		s.val = append(s.val, v)
