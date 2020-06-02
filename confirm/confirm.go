@@ -12,15 +12,20 @@ import (
 	"path"
 )
 
-var Channel = make(chan Payload, 100)
 var LogError = log.Print
 
-func init() {
-	go func() {
-		for payload := range Channel {
-			confirmDelivery(&payload)
-		}
-	}()
+// Init initializes n workers to send confirm notification
+// delivery payloads provided by ch.
+func Init(n int, ch <-chan Payload) {
+	for ; n >= 1; n-- {
+		go worker(ch)
+	}
+}
+
+func worker(ch <-chan Payload) {
+	for p := range ch {
+		confirmDelivery(&p)
+	}
 }
 
 func confirmDelivery(payload *Payload) {
