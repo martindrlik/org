@@ -26,8 +26,8 @@ type Configuration struct {
 }
 
 func ListenAndServeTLS(config Configuration) error {
-	cp := make(chan confirm.Payload, 500)
-	confirm.Init(10, cp)
+	cp := make(chan confirm.Payload, 500_000)
+	confirm.Init(50, cp)
 	config.confirmAdd = func(p confirm.Payload) { cp <- p }
 	config.queryAdd = notquery.Add
 	if config.Println == nil {
