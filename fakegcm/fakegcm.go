@@ -16,6 +16,9 @@ type Configuration struct {
 	CertFile string
 	KeyFile  string
 
+	ConfirmBuffer      int
+	ConfirmWorkerCount int
+
 	ConfirmDelivery bool
 	MessageOnly     bool
 
@@ -26,8 +29,14 @@ type Configuration struct {
 }
 
 func ListenAndServeTLS(config Configuration) error {
-	cp := make(chan confirm.Payload, 500_000)
-	confirm.Init(50, cp)
+	if config.ConfirmBuffer == 0 {
+		config.ConfirmBuffer = 2_000_000
+	}
+	if config.ConfirmWorkerCount == 0 {
+		config.ConfirmWorkerCount = 50
+	}
+	cp := make(chan confirm.Payload, config.ConfirmBuffer)
+	confirm.Init(config.ConfirmWorkerCount, cp)
 	config.confirmAdd = func(p confirm.Payload) { cp <- p }
 	config.queryAdd = notquery.Add
 	if config.Println == nil {
