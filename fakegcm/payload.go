@@ -34,9 +34,9 @@ type Data struct {
 }
 
 type Content struct {
-	ApplicationID uint64
+	ApplicationID string
 	BaseURL       string
-	ResponseCode  int
+	ResponseCode  string
 	ResponseError string
 }
 
@@ -55,10 +55,14 @@ type AndroidNotification struct {
 	TitleLocKey  string   `json:"title_loc_key"`
 }
 
-type SendRequest struct {
+type Message struct {
 	Targets
 	Options
 	Payload
+}
+
+type SendRequest struct {
+	Message Message `json:"message"`
 }
 
 func decodeSendRequest(r io.Reader) (*SendRequest, error) {

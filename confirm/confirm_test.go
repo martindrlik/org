@@ -30,7 +30,7 @@ func TestConfirmDelivery(t *testing.T) {
 	ts := httptest.NewServer(mux)
 	defer ts.Close()
 	confirmDelivery(&Payload{
-		ApplicationID: 1,
+		ApplicationID: "1",
 		BaseURL:       ts.URL,
 		Platform:      "iOS",
 		Token:         "token",

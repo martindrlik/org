@@ -14,11 +14,13 @@ import (
 func TestResponseCodeAndError(t *testing.T) {
 	w := httptest.NewRecorder()
 	r := httptest.NewRequest(http.MethodPost, "/fcm/send", bytes.NewBuffer([]byte(`{
-	"data": {
-		"ResponseCode": 302,
-		"ResponseError": "Error"
-	},
-	"registration_ids": ["x"]
+		"message": {
+			"data": {
+				"ResponseCode": "302",
+				"ResponseError": "Error"
+			},
+			"registration_ids": ["x"]
+		}
 }`)))
 	config := Configuration{
 		confirmAdd: func(confirm.Payload) {},
@@ -42,7 +44,7 @@ func TestResponseCodeAndError(t *testing.T) {
 
 func TestQueryAdd(t *testing.T) {
 	w := httptest.NewRecorder()
-	data := []byte(`{"data": {},"registration_ids": ["x", "y"]}`)
+	data := []byte(`{"message":{"data": {},"registration_ids": ["x", "y"]}}`)
 	r := httptest.NewRequest(http.MethodPost, "/fcm/send", bytes.NewBuffer(data))
 	nqueryadd := 0
 	config := Configuration{
@@ -67,7 +69,7 @@ func TestQueryAdd(t *testing.T) {
 
 func TestConfirmAdd(t *testing.T) {
 	w := httptest.NewRecorder()
-	data := []byte(`{"data": {},"registration_ids": ["x", "y"]}`)
+	data := []byte(`{"message":{"data": {},"registration_ids": ["x", "y"]}}`)
 	r := httptest.NewRequest(http.MethodPost, "/fcm/send", bytes.NewBuffer(data))
 	nconfirmadd := 0
 	config := Configuration{
@@ -86,7 +88,7 @@ func TestConfirmAdd(t *testing.T) {
 
 func TestMessageOnly(t *testing.T) {
 	w := httptest.NewRecorder()
-	data := []byte(`{"data": {"message": "Hello"},"registration_ids": ["x", "y"]}`)
+	data := []byte(`{"message":{"data": {"message": "Hello"},"registration_ids": ["x", "y"]}}`)
 	r := httptest.NewRequest(http.MethodPost, "/fcm/send", bytes.NewBuffer(data))
 	nprintln := 0
 	config := Configuration{

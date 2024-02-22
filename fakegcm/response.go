@@ -24,7 +24,7 @@ type TopicResponse struct {
 }
 
 func respond(w io.Writer, sr *SendRequest) error {
-	n := len(sr.RegistrationIds)
+	n := len(sr.Message.RegistrationIds)
 	res := Response{
 		MulticastId: 2371663165171299815,
 		Results:     make([]Result, n),
@@ -32,10 +32,10 @@ func respond(w io.Writer, sr *SendRequest) error {
 	for i := 0; i < n; i++ {
 		res.Results[i] = Result{
 			MessageId: "0:5219441976194715812%8eda0b1da6bda",
-			Error:     sr.Data.ResponseError,
+			Error:     sr.Message.Data.ResponseError,
 		}
 	}
-	if sr.Data.ResponseError == "" {
+	if sr.Message.Data.ResponseError == "" {
 		res.Success = n
 	} else {
 		res.Failure = n

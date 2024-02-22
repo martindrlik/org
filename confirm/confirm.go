@@ -10,6 +10,7 @@ import (
 	"net/http"
 	"net/url"
 	"path"
+	"strconv"
 )
 
 var LogError = log.Print
@@ -60,14 +61,18 @@ func (payload *Payload) requestURL() (*url.URL, error) {
 }
 
 func (payload *Payload) requestBody() io.Reader {
+	appId, err := strconv.ParseUint(payload.ApplicationID, 10, 64)
+	if err != nil {
+		fmt.Printf("unable to parse application id string: %s\n", payload.ApplicationID)
+	}
 	b := &bytes.Buffer{}
 	enc := json.NewEncoder(b)
-	err := enc.Encode(struct {
+	err = enc.Encode(struct {
 		ApplicationID     uint64
 		NotificationToken string
 		Platform          string
 	}{
-		ApplicationID:     payload.ApplicationID,
+		ApplicationID:     uint64(appId),
 		Platform:          payload.Platform,
 		NotificationToken: payload.Token,
 	})

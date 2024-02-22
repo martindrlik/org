@@ -1,7 +1,7 @@
 package confirm
 
 type Payload struct {
-	ApplicationID uint64
+	ApplicationID string
 	BaseURL       string
 	Platform      string
 	Token         string

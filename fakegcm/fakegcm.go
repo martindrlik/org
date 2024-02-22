@@ -2,8 +2,10 @@ package fakegcm
 
 import (
 	"bytes"
+	"fmt"
 	"log"
 	"net/http"
+	"strconv"
 	"strings"
 
 	"github.com/martindrlik/org/confirm"
@@ -58,24 +60,28 @@ func (config Configuration) handle(w http.ResponseWriter, r *http.Request) {
 		config.Println(err)
 		return
 	}
-	config.queryAdd(strings.Join(sr.RegistrationIds, ","), sp[1])
+	config.queryAdd(strings.Join(sr.Message.RegistrationIds, ","), sp[1])
 	if config.MessageOnly {
-		config.Println(sr.Data.Message)
+		config.Println(sr.Message.Data.Message)
 	} else {
 		config.Println(buf)
 	}
+	statusCode, err := strconv.Atoi(sr.Message.Data.ResponseCode)
+	if sr.Message.Data.ResponseCode != "" && err != nil {
+		fmt.Printf("unable to parse response code string: %s\n", sr.Message.Data.ResponseCode)
+	}
 	if config.ConfirmDelivery &&
-		isSuccessCode(sr.Data.ResponseCode) &&
-		sr.Data.ResponseError == "" {
+		isSuccessCode(statusCode) &&
+		sr.Message.Data.ResponseError == "" {
 		config.confirmAdd(confirm.Payload{
-			ApplicationID: sr.Data.Content.ApplicationID,
-			BaseURL:       sr.Data.Content.BaseURL,
+			ApplicationID: sr.Message.Data.Content.ApplicationID,
+			BaseURL:       sr.Message.Data.Content.BaseURL,
 			Platform:      "Android",
-			Token:         sr.Data.NotificationToken,
+			Token:         sr.Message.Data.NotificationToken,
 		})
 	}
-	if sr.Data.ResponseCode != 0 {
-		w.WriteHeader(sr.Data.ResponseCode)
+	if statusCode != 0 {
+		w.WriteHeader(statusCode)
 	}
 	err = respond(w, sr)
 	if err != nil {
